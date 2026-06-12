@@ -3,3 +3,6 @@ venv/
 # Ignoramos las cachés que pytest y Python generan automáticamente al correr
 __pycache__/
 .pytest_cache/
+# Ignoramos los resultados y el reporte de Allure (se generan al correr los tests)
+allure-results/
+allure-report/

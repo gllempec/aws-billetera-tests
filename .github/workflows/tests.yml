@@ -8,13 +8,6 @@ on:
   # Tambien se ejecuta cuando se abre/actualiza un Pull Request
   pull_request:
 
-# "permissions" le da permiso al pipeline para escribir resultados como "check" en GitHub
-# Sin esto, dorny/test-reporter no podria publicar el resumen
-# Va al mismo nivel que "on" y "jobs" (permiso para TODO el workflow)
-permissions:
-  checks: write
-  contents: read
-
 # "jobs" son los trabajos que va a correr (puede haber varios, aqui solo uno)
 jobs:
   # Le damos un nombre interno a este trabajo: "test"
@@ -33,25 +26,29 @@ jobs:
           # Version de Python a instalar (misma que usamos localmente)
           python-version: "3.12"
 
-      # Paso 3: instala las librerias que necesita el proyecto
+      # Paso 3: instala las librerias del proyecto + allure-pytest (plugin de reporte)
       - name: Instalar dependencias
-        run: pip install pytest boto3 moto
+        run: pip install pytest boto3 moto allure-pytest
 
-      # Paso 4: corre todos los tests con pytest, en modo detallado (-v)
+      # Paso 4: corre los tests y guarda los resultados "crudos" para Allure
       - name: Correr tests
-        # --junitxml genera un archivo XML con los resultados, en formato estandar
-        run: pytest -v --junitxml=results.xml
+        # --alluredir genera una carpeta con archivos JSON, uno por test
+        run: pytest -v --alluredir=allure-results
 
-      # Paso 5: lee results.xml y publica un resumen visual en el workflow
-      - name: Publicar resumen de tests
-        uses: dorny/test-reporter@v1
-        # "if: always()" hace que este paso corra AUNQUE el paso anterior haya fallado
-        # (asi puedes ver el resumen incluso si algun test falla)
+      # Paso 5: convierte esos archivos JSON en un reporte HTML visual de Allure
+      # (esta action incluye Java + el CLI de Allure, no necesitas instalarlos)
+      - name: Generar reporte Allure
+        uses: simple-elf/allure-report-action@v1.9
+        # "if: always()" para generar el reporte aunque algun test haya fallado
         if: always()
         with:
-          # Nombre que aparecera en el resumen
-          name: Resultados de Pytest
-          # Ruta del archivo generado en el paso anterior
-          path: results.xml
-          # Formato del archivo (pytest genera XML estilo JUnit)
-          reporter: java-junit
+          allure_results: allure-results
+          allure_report: allure-report
+
+      # Paso 6: sube el reporte HTML como "artifact" descargable desde el run
+      - name: Subir reporte Allure
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-report
+          path: allure-report
