@@ -57,3 +57,20 @@ jobs:
         with:
           name: allure-report
           path: allure-report
+
+  # Segundo job: prueba de performance con k6.
+  # Como NO tiene "needs:", corre EN PARALELO con el job "test" (los dos arrancan al mismo tiempo)
+  performance:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Descargamos el codigo del repo (necesitamos performance/load_test.js)
+      - uses: actions/checkout@v4
+
+      # grafana/k6-action instala k6 (sin Docker) y corre el script indicado.
+      # Si algun "threshold" del script falla, este paso (y el job) fallan: eso convierte
+      # a la performance en un "gate" mas del pipeline, igual que los tests funcionales
+      - name: Correr prueba de carga con k6
+        uses: grafana/k6-action@v0.3.1
+        with:
+          filename: performance/load_test.js

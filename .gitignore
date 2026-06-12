@@ -6,3 +6,5 @@ __pycache__/
 # Ignoramos los resultados y el reporte de Allure (se generan al correr los tests)
 allure-results/
 allure-report/
+# Ignoramos el binario portable de k6 (pesa ~63MB, no es "nuestro codigo")
+tools/
