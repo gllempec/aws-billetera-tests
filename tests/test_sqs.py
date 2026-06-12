@@ -2,12 +2,10 @@
 import json
 # Importamos boto3, la libreria oficial de AWS para Python
 import boto3
-# Importamos mock_aws de moto, para simular AWS sin necesidad de internet ni cuenta real
-from moto import mock_aws
 
 
-# El decorador @mock_aws hace que, dentro de esta funcion, todas las llamadas a AWS sean simuladas
-@mock_aws
+# Ya no necesitamos @mock_aws aqui: el fixture "aws_simulado" en conftest.py
+# activa la simulacion de AWS automaticamente para TODOS los tests
 def test_enviar_y_recibir_mensaje_de_transferencia():
     # Creamos un "cliente" de SQS: un objeto que sabe hablar con el servicio SQS (simulado)
     sqs = boto3.client("sqs", region_name="us-east-1")
