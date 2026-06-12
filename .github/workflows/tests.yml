@@ -33,19 +33,24 @@ jobs:
       # Paso 4: corre los tests y guarda los resultados "crudos" para Allure
       - name: Correr tests
         # --alluredir genera una carpeta con archivos JSON, uno por test
+        # if: always() no aplica aqui (es el primer paso que puede fallar)
         run: pytest -v --alluredir=allure-results
 
-      # Paso 5: convierte esos archivos JSON en un reporte HTML visual de Allure
-      # (esta action incluye Java + el CLI de Allure, no necesitas instalarlos)
-      - name: Generar reporte Allure
-        uses: simple-elf/allure-report-action@v1.9
-        # "if: always()" para generar el reporte aunque algun test haya fallado
+      # Paso 5: descarga el CLI de Allure (un programa Java, sin Docker)
+      # Ubuntu ya trae Java instalado, asi que solo descargamos y descomprimimos
+      - name: Instalar Allure CLI
         if: always()
-        with:
-          allure_results: allure-results
-          allure_report: allure-report
+        run: |
+          curl -o allure.tgz -Ls https://github.com/allure-framework/allure2/releases/download/2.29.0/allure-2.29.0.tgz
+          tar -zxf allure.tgz -C /opt/
+          sudo ln -s /opt/allure-2.29.0/bin/allure /usr/local/bin/allure
 
-      # Paso 6: sube el reporte HTML como "artifact" descargable desde el run
+      # Paso 6: convierte los JSON de allure-results en un reporte HTML
+      - name: Generar reporte Allure
+        if: always()
+        run: allure generate allure-results -o allure-report --clean
+
+      # Paso 7: sube el reporte HTML como "artifact" descargable desde el run
       - name: Subir reporte Allure
         uses: actions/upload-artifact@v4
         if: always()
