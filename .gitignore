@@ -1,0 +1,5 @@
+# Ignoramos la carpeta del entorno virtual (son miles de archivos de librerias, no es "nuestro codigo")
+venv/
+# Ignoramos las cachés que pytest y Python generan automáticamente al correr
+__pycache__/
+.pytest_cache/

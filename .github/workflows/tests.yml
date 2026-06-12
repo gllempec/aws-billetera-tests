@@ -1,0 +1,35 @@
+# Nombre del workflow, aparece en la pestaña "Actions" de GitHub
+name: Tests
+
+# "on" define CUANDO se ejecuta este workflow
+on:
+  # Se ejecuta cada vez que haces push a cualquier rama
+  push:
+  # Tambien se ejecuta cuando se abre/actualiza un Pull Request
+  pull_request:
+
+# "jobs" son los trabajos que va a correr (puede haber varios, aqui solo uno)
+jobs:
+  # Le damos un nombre interno a este trabajo: "test"
+  test:
+    # Le decimos a GitHub que use una maquina virtual con Ubuntu (Linux) limpia
+    runs-on: ubuntu-latest
+
+    # "steps" son los pasos que se ejecutan en orden, uno por uno
+    steps:
+      # Paso 1: descarga el codigo de tu repo dentro de esa maquina virtual
+      - uses: actions/checkout@v4
+
+      # Paso 2: instala Python en esa maquina virtual
+      - uses: actions/setup-python@v5
+        with:
+          # Version de Python a instalar (misma que usamos localmente)
+          python-version: "3.12"
+
+      # Paso 3: instala las librerias que necesita el proyecto
+      - name: Instalar dependencias
+        run: pip install pytest boto3 moto
+
+      # Paso 4: corre todos los tests con pytest, en modo detallado (-v)
+      - name: Correr tests
+        run: pytest -v
