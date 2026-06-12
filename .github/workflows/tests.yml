@@ -8,6 +8,13 @@ on:
   # Tambien se ejecuta cuando se abre/actualiza un Pull Request
   pull_request:
 
+# "permissions" le da permiso al pipeline para escribir resultados como "check" en GitHub
+# Sin esto, dorny/test-reporter no podria publicar el resumen
+# Va al mismo nivel que "on" y "jobs" (permiso para TODO el workflow)
+permissions:
+  checks: write
+  contents: read
+
 # "jobs" son los trabajos que va a correr (puede haber varios, aqui solo uno)
 jobs:
   # Le damos un nombre interno a este trabajo: "test"
@@ -32,4 +39,19 @@ jobs:
 
       # Paso 4: corre todos los tests con pytest, en modo detallado (-v)
       - name: Correr tests
-        run: pytest -v
+        # --junitxml genera un archivo XML con los resultados, en formato estandar
+        run: pytest -v --junitxml=results.xml
+
+      # Paso 5: lee results.xml y publica un resumen visual en el workflow
+      - name: Publicar resumen de tests
+        uses: dorny/test-reporter@v1
+        # "if: always()" hace que este paso corra AUNQUE el paso anterior haya fallado
+        # (asi puedes ver el resumen incluso si algun test falla)
+        if: always()
+        with:
+          # Nombre que aparecera en el resumen
+          name: Resultados de Pytest
+          # Ruta del archivo generado en el paso anterior
+          path: results.xml
+          # Formato del archivo (pytest genera XML estilo JUnit)
+          reporter: java-junit
